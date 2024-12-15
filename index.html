@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>手电筒应用</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      background: #000;
+      transition: background 0.3s;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+    #lightScreen {
+      width: 100%;
+      height: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      transition: background-color 0.3s;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 85%;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 25px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      z-index: 100;
+    }
+
+    .slider-container {
+      margin: 15px 0;
+    }
+
+    label {
+      color: white;
+      display: block;
+      margin-bottom: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 自定义滑块样式 */
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s ease;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="range"]:active::-webkit-slider-thumb {
+      transform: scale(0.95);
+    }
+
+    #fullscreenBtn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      z-index: 100;
+      font-size: 14px;
+      backdrop-filter: blur(5px);
+      transition: all 0.3s ease;
+    }
+
+    #fullscreenBtn:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* 添加图标 */
+    .slider-icon {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      margin-right: 8px;
+      opacity: 0.9;
+    }
+
+    .slider-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    /* 进度条背景效果 */
+    .progress-bar {
+      position: relative;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 3px;
+      transition: width 0.2s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="lightScreen"></div>
+  <button id="fullscreenBtn">全屏</button>
+  <div class="controls">
+    <div class="slider-container">
+      <div class="slider-header">
+        <span class="slider-icon">💡</span>
+        <label>亮度控制</label>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="brightness-fill"></div>
+      </div>
+      <input type="range" id="brightness" min="0" max="100" value="50">
+    </div>
+    <div class="slider-container">
+      <div class="slider-header">
+        <span class="slider-icon">🌡️</span>
+        <label>色温控制</label>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="temperature-fill"></div>
+      </div>
+      <input type="range" id="temperature" min="0" max="100" value="50">
+    </div>
+  </div>
+
+  <script>
+    const brightnessSlider = document.getElementById('brightness');
+    const temperatureSlider = document.getElementById('temperature');
+    const lightScreen = document.getElementById('lightScreen');
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const brightnessFill = document.getElementById('brightness-fill');
+    const temperatureFill = document.getElementById('temperature-fill');
+
+    function updateLight () {
+      const brightness = brightnessSlider.value;
+      const temperature = temperatureSlider.value;
+
+      // 更新进度条填充
+      brightnessFill.style.width = `${brightness}%`;
+      temperatureFill.style.width = `${temperature}%`;
+
+      // 将色温值转换为实际的颜色
+      const warmth = Math.round((temperature / 100) * 255);
+      const color = `rgb(255, ${warmth + 155}, ${warmth + 100})`;
+
+      lightScreen.style.backgroundColor = color;
+      lightScreen.style.opacity = brightness / 100;
+    }
+
+    fullscreenBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log(`全屏请求失败: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement) {
+        fullscreenBtn.textContent = '退出全屏';
+      } else {
+        fullscreenBtn.textContent = '全屏';
+      }
+    });
+
+    brightnessSlider.addEventListener('input', updateLight);
+    temperatureSlider.addEventListener('input', updateLight);
+
+    function keepAwake () {
+      if (navigator.wakeLock) {
+        navigator.wakeLock.request('screen')
+          .catch(err => console.log(`无法保持屏幕唤醒: ${err.message}`));
+      }
+    }
+
+    updateLight();
+    keepAwake();
+  </script>
+</body>
+
+</html>
